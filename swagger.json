@@ -1,0 +1,343 @@
+{
+    "swagger": "2.0",
+    "info": {
+      "version": "1.0.0",
+      "title": "Skill-app Backend",
+      "description": "Skill-app backend api docs",
+      "license": {
+        "name": "MIT",
+        "url": "https://opensource.org/licenses/MIT"
+      }
+    },
+    "host": "localhost:3000/v1/",
+    "basePath": "/",
+    "tags": [
+      {
+        "name": "User",
+        "description": "API for users in the system"
+      }
+    ],
+    "schemes": [
+      "http"
+    ],
+    "consumes": [
+      "application/json"
+    ],
+    "produces": [
+      "application/json"
+    ],
+    "servers": [
+      {
+        "url": "http://localhost:3000/v1/",
+        "description": "Development Serve"
+      }
+    ],
+    "paths": {
+      "/user/register": {
+        "post": {
+          "tags": [
+            "User"
+          ],
+          "description": "Create new user in system",
+          "parameters": [
+            {
+              "name": "SignUp Request",
+              "in": "body",
+              "description": "User that we want to create",
+              "schema": {
+                "$ref": "#/definitions/User"
+              }
+            }
+          ],
+          "produces": [
+            "application/json"
+          ],
+          "responses": {
+            "200": {
+              "description": "New user is created",
+              "schema": {
+                "$ref": "#/definitions/User"
+              }
+            }
+          }
+        } 
+      },
+      "/user/signin": {
+        "post": {
+          "tags": [
+            "User"
+          ],
+          "description": "User can login to system",
+          "parameters": [
+            {
+              "name": "Signin Request",
+              "in": "body",
+              "description": "User that we want to login",
+              "schema": {
+                "$ref": "#/definitions/UserLogin"
+              }
+            }
+          ],
+          "produces": [
+            "application/json"
+          ],
+          "responses": {
+            "200": {
+              "description": "User logged in",
+              "schema": {
+                "$ref": "#/definitions/UserLoginResponseDto"
+              }
+            },
+            "400": {
+              "description": "Invalid Password or Email not verified",
+              "schema": {
+                "$ref": "#/definitions/ErrorDto"
+              }
+            },
+            "404": {
+              "description": "User does nto exist or Url not found",
+              "schema": {
+                "$ref": "#/definitions/ErrorDto"
+              }
+            }
+          }
+        } 
+      },
+      "/user/encrypt": {
+        "post": {
+          "tags": ["User"],
+          "description": "User can use this api to encrypt text for passwords",
+          "parameters": [
+            {
+              "name": "Request body for encrypting password",
+              "in": "body",
+              "description": "Request body parameters for encrypting password",
+              "schema": {
+                "$ref": "#/definitions/EncryptTextRequest"
+              }
+            }
+          ],
+          "produces": ["application/json"],
+          "responses": {
+            "200": {
+              "description": "Password encrypted successfully"
+            }
+          }
+        }
+      },
+      "/user/verify-email": {
+        "post": {
+          "tags": ["User"],
+          "description": "User can verify email to system",
+          "parameters": [
+            {
+              "name": "Verify Email",
+              "in": "body",
+              "description": "User that we want to login",
+              "schema": {
+                "$ref": "#/definitions/TokenRequest"
+              }
+            }
+          ],
+          "produces": ["application/json"],
+          "responses": {
+            "200": {
+              "description": "User logged in"
+            },
+            "400": {
+              "description": "Invalid Password or Email not verified",
+              "schema": {
+                "$ref": "#/definitions/ErrorDto"
+              }
+            },
+            "401": {
+              "description": "Unauthorized user",
+              "schema": {
+                "$ref": "#/definitions/ErrorDto"
+              }
+            }
+          }
+        }
+      },
+      "/user/forgot-password": {
+        "post": {
+          "tags": ["User"],
+          "description": "Sends forgot password link to user",
+          "parameters": [
+            {
+              "name": "forgot password request",
+              "in": "body",
+              "description": "email on which we will send link",
+              "schema": {
+                "$ref": "#/definitions/ForgotPasswordRequest"
+              }
+            }
+          ],
+          "produces": ["application/json"],
+          "responses": {
+            "200": {
+              "description": "link sent to registered email"
+            },
+            "404": {
+              "description": "User does not exist"
+            }
+          }
+        }
+      },
+      "/user/reset": {
+        "post": {
+          "tags": ["User"],
+          "description": "Reset password for a user",
+          "parameters": [
+            {
+              "name": "Reset password request",
+              "in": "body",
+              "description": "params by which we reset user password",
+              "schema": {
+                "$ref": "#/definitions/ResetPasswordRequest"
+              }
+            }
+          ],
+          "produces": ["application/json"],
+          "responses": {
+            "200": {
+              "description": "Password reset successfully"
+            },
+            "404": {
+              "description": "User does not exist"
+            },
+            "400": {
+              "description": "Invalid or expired link"
+            }
+          }
+        }
+      }
+    },
+    "definitions": {
+      "User": {
+        "required": [
+          "name",
+          "role",
+          "email",
+          "password"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "type": "number"
+          },
+          "password": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          }
+        }
+      },
+      "ForgotPasswordRequest": {
+        "required": ["email"],
+        "properties": {
+          "email": {
+            "type": "string"
+          }
+        }
+      },
+      "ResetPasswordRequest": {
+        "required": [
+          "password",
+          "resetPasswordToken"
+        ],
+        "properties": {
+          "password": {
+            "type": "string"
+          },
+          "resetPasswordToken": {
+            "type": "string"
+          }
+        }
+      },
+      "TokenRequest": {
+        "required": ["token"],
+        "properties": {
+          "token": {
+            "type": "string"
+          },
+          "role": {
+            "type": "number"
+          }
+        }
+      },
+      "EncryptTextRequest": {
+        "required": ["password"],
+        "properties": {
+          "password": {
+            "type": "string"
+          }
+        }
+      },
+      "UserLogin": {
+        "required": [
+          "email",
+          "password"
+        ],
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "role": {
+            "type": "number"
+          }
+        }
+      },
+      "UserLoginResponseDto": {
+        "required": [
+          "username",
+          "email",
+          "activeToken",
+          "createdAt",
+          "id"
+        ],
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "activeToken": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          }
+        }
+      },
+      "ErrorDto": {
+        "required": [
+          "code",
+          "errorMessage",
+          "isPublic"
+        ],
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "errorMessage": {
+            "type": "string"
+          },
+          "isPublic": {
+            "type": "string"
+          }
+        }
+      }
+     
+    }
+  }

@@ -1,0 +1,4 @@
+NODE_ENV=test
+PORT=3000
+JWT_SECRET=da10cff510599382bcb87056738bb7ab946e48e3da10cff510599382bc
+MONGO_URL=mongodb://adminuser:Skill-app123@54.83.187.109:27017/Skill-app?authSource=admin
