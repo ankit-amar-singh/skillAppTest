@@ -5,8 +5,10 @@ const { serve, setup } = require("swagger-ui-express");
 const { connectDB } = require("./db.js");
 const routes = require("../routes/v1/index.js");
 const swaggerDocument = require("../../swagger.json");
-
+const cors = require("cors");
 const app = express();
+app.use(cors());
+
 // Routes
 
 connectDB();
