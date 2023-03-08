@@ -15,7 +15,7 @@ exports.tokenAuthentication = async (req, res, next) => {
     const existingUser = await User.findOne({
       _id: userId,
     })
-      .select("username email _id activeToken status")
+      .select("name email _id activeToken role status")
       .exec();
     if (!existingUser) {
       throw new APIError({
@@ -32,7 +32,7 @@ exports.tokenAuthentication = async (req, res, next) => {
         isPublic: true,
       });
     }
-    if (existingUser.status === dbDocStatus.inActive) {
+    if (existingUser.status === dbDocStatus.inactive) {
       throw new APIError({
         message: userMessages.inactiveUser,
         status: httpStatus.UNAUTHORIZED,

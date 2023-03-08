@@ -10,6 +10,8 @@ const userRoles = {
   teamMember: 1,
 };
 
+const berlinTimeZone = "Europe/Berlin";
+
 const dbDocStatus = {
   active: 0,
   inactive: 1,
@@ -31,4 +33,6 @@ const envVariables = {
   smtpSenderEmail: process.env.SMTP_SENDER_ID,
 };
 
-module.exports = { envVariables, userRoles, dbDocStatus };
+module.exports = {
+  envVariables, userRoles, dbDocStatus, berlinTimeZone,
+};

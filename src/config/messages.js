@@ -6,6 +6,7 @@ const userMessages = {
   passwordResetTokenExpired: "Password reset token is invalid or has expired.",
   accountVerificationAndLoginWithCred:
     "You have verified your account successfully, please log in with your credentials.",
+  userLoggedOut: "User logged out successfully",
 };
 
 const tokenMessages = {

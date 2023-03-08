@@ -43,7 +43,7 @@ const userSchema = new Schema(
     },
     password: {
       type: String,
-      required: true,
+      required: false,
       minlength: 6,
       maxlength: 128,
     },
@@ -57,11 +57,36 @@ const userSchema = new Schema(
       maxlength: 128,
       trim: true,
     },
+    surname: {
+      type: String,
+      maxlength: 128,
+      trim: true,
+    },
+    position: {
+      type: String,
+      maxlength: 128,
+      required: false,
+      trim: true,
+    },
+    lastLoginAt: {
+      type: String,
+      required: false,
+    },
     activeToken: {
       type: String,
     },
     emailVerificationToken: {
       type: String,
+    },
+    status: {
+      type: Number,
+      enum: [
+        dbDocStatus.active,
+        dbDocStatus.inactive,
+        dbDocStatus.suspended,
+        dbDocStatus.deleted,
+      ],
+      default: dbDocStatus.active,
     },
     isEmailVerified: {
       type: Boolean,
@@ -93,7 +118,7 @@ userSchema.pre("save", async function save(next) {
 userSchema.method({
   transform() {
     const transformed = {};
-    const fields = ["id", "username", "email", "updatedAt", "createdAt", "role"];
+    const fields = ["id", "name", "email", "updatedAt", "createdAt", "role"];
 
     fields.forEach((field) => {
       transformed[field] = this[field];

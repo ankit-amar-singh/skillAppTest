@@ -38,12 +38,12 @@
           "tags": [
             "User"
           ],
-          "description": "Create new user in system",
+          "description": "Create new team leader in system",
           "parameters": [
             {
               "name": "SignUp Request",
               "in": "body",
-              "description": "User that we want to create",
+              "description": "Team Leader that we want to create",
               "schema": {
                 "$ref": "#/definitions/User"
               }
@@ -57,6 +57,98 @@
               "description": "New user is created",
               "schema": {
                 "$ref": "#/definitions/User"
+              }
+            }
+          }
+        } 
+      },
+      "/user/register-team-member": {
+        "post": {
+          "tags": [
+            "User"
+          ],
+          "description": "Create new team member in system",
+          "parameters": [
+            {
+              "name": "token",
+              "in": "header",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "image",
+              "in": "formData",
+              "type": "file",
+              "description": "file to upload"
+            },
+            {
+              "name": "name",
+              "in": "formData",
+              "type": "string",
+              "description": "name of user"
+            },
+            {
+              "name": "surname",
+              "in": "formData",
+              "type": "string",
+              "description": "surname of user"
+            },
+            {
+              "name": "position",
+              "in": "formData",
+              "type": "string",
+              "description": "position of team member"
+            },
+            {
+              "name": "email",
+              "in": "formData",
+              "type": "string",
+              "description": "email of team member"
+            }
+          ],
+          "produces": [
+            "application/json"
+          ],
+          "responses": {
+            "200": {
+              "description": "New Team Member is created",
+              "schema": {
+                "$ref": "#/definitions/TeamMemberRegisterResponse"
+              }
+            }
+          }
+        } 
+      },
+      "/user/register-team-member-password/{teamMemberId}": {
+        "post": {
+          "tags": [
+            "User"
+          ],
+          "description": "Completes new team member registration with password in system",
+          "parameters": [
+            {
+              "name": "teamMemberId",
+              "in": "path",
+              "description": "Team member that we want to create"
+            },
+            {
+              "name": "SignUp Request",
+              "in": "body",
+              "description": "Team Leader for which we want to complete registration process",
+              "schema": {
+                "$ref": "#/definitions/TeamMemberPasswordBody"
+              }
+            }
+          ],
+          "produces": [
+            "application/json"
+          ],
+          "responses": {
+            "200": {
+              "description": "New Team Member is created",
+              "schema": {
+                "$ref": "#/definitions/TeamMemberRegisterResponse"
               }
             }
           }
@@ -159,6 +251,72 @@
           }
         }
       },
+      "/user/team-members": {
+        "get": {
+          "tags": ["User"],
+          "description": "Team leaders can get all users",
+          "parameters": [
+            {
+              "name": "token",
+              "in": "header",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "page",
+              "in": "query",
+              "schema": {
+                "type": "number"
+              }
+            },
+            {
+              "name": "search",
+              "in": "query",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "count",
+              "in": "query",
+              "schema": {
+                "type": "number"
+              }
+            }
+          ],
+          "produces": ["application/json"],
+          "responses": {
+            "200": {
+              "description": "User's List Response",
+              "schema": {
+                "$ref": "#/definitions/TeamMemberListingResponse"
+              }
+            }
+          }
+        }
+      },
+      "/user/logout": {
+        "patch": {
+          "tags": ["User"],
+          "description": "User will be logged out of the system",
+          "parameters": [
+            {
+              "name": "token",
+              "in": "header",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "produces": ["application/json"],
+          "responses": {
+            "200": {
+              "description": "User will be logged out"
+            }
+          }
+        }
+      },
       "/user/forgot-password": {
         "post": {
           "tags": ["User"],
@@ -217,7 +375,6 @@
       "User": {
         "required": [
           "name",
-          "role",
           "email",
           "password"
         ],
@@ -225,8 +382,23 @@
           "name": {
             "type": "string"
           },
-          "role": {
-            "type": "number"
+          "password": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          }
+        }
+      },
+      "TeamMemberPasswordBody": {
+        "required": [
+          "name",
+          "email",
+          "password"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
           },
           "password": {
             "type": "string"
@@ -234,6 +406,109 @@
           "email": {
             "type": "string"
           }
+        }
+      },
+      "TeamMember": {
+        "required": [
+          "name",
+          "email",
+          "surname",
+          "position"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "required": true
+          },
+          "surname": {
+            "type": "string",
+            "required": true
+          },
+          "email": {
+            "type": "string",
+            "required": true
+          },
+          "position": {
+            "type": "string"
+          }
+        }
+      },
+      "TeamMemberRegisterResponse": {
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "email": {
+                "type": "string"
+              },
+              "updatedAt": {
+                "type": "string"
+              },
+              "createdAt": {
+                "type": "string"
+              },
+              "role": {
+                "type": "integer",
+                "format": "int32"
+              }
+            }
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "TeamMemberListingResponse": {
+        "properties": {
+            "data": {
+              "type": "object",
+              "properties": {
+                "users": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "_id": {
+                        "type": "string"
+                      },
+                      "email": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "surname": {
+                        "type": "string"
+                      },
+                      "position": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "totalUsersCount": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "code": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "message": {
+              "type": "string"
+            }
         }
       },
       "ForgotPasswordRequest": {
@@ -263,9 +538,6 @@
         "properties": {
           "token": {
             "type": "string"
-          },
-          "role": {
-            "type": "number"
           }
         }
       },
@@ -288,9 +560,6 @@
           },
           "password": {
             "type": "string"
-          },
-          "role": {
-            "type": "number"
           }
         }
       },

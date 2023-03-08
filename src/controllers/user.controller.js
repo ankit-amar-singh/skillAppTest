@@ -1,15 +1,17 @@
 const httpStatus = require("http-status");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
+// eslint-disable-next-line import/no-extraneous-dependencies
+const momenttz = require("moment-timezone");
 
-const { envVariables } = require("../config/vars.js");
+const { envVariables, berlinTimeZone, userRoles } = require("../config/vars.js");
 const { userMessages, tokenMessages } = require("../config/messages");
 const APIError = require("../errors/api-error.js");
 const User = require("../models/user.model.js");
 
 const { decryptGivenText, encryptGivenText } = require("../utils/security");
 const { generateJwtToken } = require("../utils/token-generation.utils");
-const { sendEmailVerificationMail, sendForgotPasswordMail } = require("../utils/mails.utils");
+const { sendEmailVerificationMail, sendForgotPasswordMail, sendInvitationEmail } = require("../utils/mails.utils");
 
 const {
   CREATED, OK, UNPROCESSABLE_ENTITY, UNAUTHORIZED,
@@ -65,6 +67,7 @@ exports.register = async (req, res, next) => {
         isPublic: true,
       });
     }
+    req.body.role = userRoles.teamLeader;
     const userData = req.body;
     const user = await new User(userData).save();
     const transformedUser = user.transform();
@@ -85,6 +88,126 @@ exports.register = async (req, res, next) => {
       message: userMessages.emailVerificationLink,
     };
     return res.status(CREATED).json(responseObj);
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// function for registration of team members
+exports.teamMemberRegistration = async (req, res, next) => {
+  try {
+    // const decryptedPassword = decryptGivenText(req.body.password);
+    // req.body.password = decryptedPassword;
+    const email = req.body.email.toString();
+    req.body.role = userRoles.teamMember;
+    // checking if a team member with same email already exist
+    const existingUser = await User.findOne({
+      email,
+    }).exec();
+    if (existingUser) {
+      // if team member already exist but email is not verified
+      if (existingUser.isEmailVerified === false) {
+        // sending mail for verification of team member
+        // eslint-disable-next-line no-underscore-dangle
+        await sendInvitationEmail(existingUser.email, req.userProfile._doc.name, existingUser.role);
+        const existingUserResponse = {
+          data: existingUser.transform(),
+          code: CREATED,
+          message: userMessages.emailVerificationLink,
+        };
+        return res.status(CREATED).json(existingUserResponse);
+      }
+      throw new APIError({
+        status: httpStatus.UNPROCESSABLE_ENTITY,
+        message: userMessages.emailAlreadyExist,
+        isPublic: true,
+      });
+    }
+    // if team member does not exist, save body as a new entry
+    const userData = req.body;
+    const user = await new User(userData).save();
+    const transformedUser = user.transform();
+    // sending mail for verification of team member
+    // eslint-disable-next-line no-underscore-dangle
+    await sendInvitationEmail(transformedUser.email, req.userProfile._doc.name, transformedUser.id);
+    const responseObj = {
+      data: transformedUser,
+      code: CREATED,
+      message: userMessages.emailVerificationLink,
+    };
+    return res.status(CREATED).json(responseObj);
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// function for completing the process for registration with password for team member
+exports.registerTeamMemberWithPassword = async (req, res, next) => {
+  try {
+    const teamMemberId = req.params.teamMemberId.toString();
+    const teamMemberInfo = (await User.getAnyUserById(teamMemberId));
+    const email = req.body.email.toString();
+    if (email !== teamMemberInfo.email) {
+      const existingEmailUser = await User.findOne({ email }).select('email _id').exec();
+      if (existingEmailUser) {
+        throw new APIError({
+          status: httpStatus.UNPROCESSABLE_ENTITY,
+          message: userMessages.emailAlreadyExist,
+          isPublic: true,
+        });
+      }
+    }
+    const decryptedPassword = decryptGivenText(req.body.password);
+    req.body.password = decryptedPassword;
+    teamMemberInfo.isEmailVerified = true;
+    teamMemberInfo.name = req.body.name.toString();
+    teamMemberInfo.email = email.toString();
+    teamMemberInfo.password = req.body.password;
+    await teamMemberInfo.save();
+    return res.status(200).json(teamMemberInfo);
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// function for listing and search of team members
+exports.teamMemberListing = async (req, res, next) => {
+  try {
+    const perPage = +req.query.count || 20;
+    const page = +req.query.page || 1;
+    let search;
+    if (req.query.search && req.query.search !== undefined) {
+      search = req.query.search.toString();
+    }
+    const filter = {
+      role: userRoles.teamMember,
+    };
+    if (search && search !== undefined) {
+      const regex = new RegExp(search, "i");
+      Object.assign(filter, {
+        $or: [{ name: regex }, { email: regex }],
+      });
+    }
+    let usersData = [];
+    usersData = await User.find(filter)
+      .sort({ createdAt: -1 })
+      .select(
+        "name email surname position",
+      )
+      .skip(perPage * page - perPage)
+      .limit(perPage)
+      .exec();
+    const totalUsersCount = await User.countDocuments(filter).exec();
+    const usersResponse = {
+      users: usersData,
+      totalUsersCount,
+    };
+    const responseObj = {
+      data: usersResponse,
+      code: OK,
+      message: "Team members list response",
+    };
+    return res.status(OK).json(responseObj);
   } catch (error) {
     return next(error);
   }
@@ -112,16 +235,56 @@ exports.signin = async (req, res, next) => {
       },
       jwtSecret,
     );
+    const currentMoment = momenttz.tz(berlinTimeZone);
     await User.updateOne(
       { _id: transformedUser.id },
       {
         $set: {
+          lastLoginAt: currentMoment.format("MMM Do, YYYY"),
           activeToken: token,
         },
       },
     );
     transformedUser.activeToken = token;
     return res.status(OK).json({ user: transformedUser });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+exports.logOutUser = async (req, res, next) => {
+  try {
+    const userId = req.userId ? req.userId : undefined;
+    if (!userId) {
+      throw new APIError({
+        message: tokenMessages.tokenNotValid,
+        status: UNAUTHORIZED,
+        isPublic: true,
+      });
+    }
+    const existingUser = await User.getAnyUserById(userId);
+    if (!existingUser) {
+      throw new APIError({
+        message: userMessages.userDoesNotExist,
+        code: UNPROCESSABLE_ENTITY,
+        isPublic: true,
+      });
+    }
+    await User.updateOne(
+      // eslint-disable-next-line no-underscore-dangle
+      { _id: existingUser._id },
+      {
+        $set: {
+          activeToken: null,
+        },
+      },
+    ).exec();
+    const responseObj = {
+      data: {},
+      code: OK,
+      message: userMessages.userLoggedOut,
+    };
+    return res.status(200).json(responseObj);
   } catch (error) {
     return next(error);
   }

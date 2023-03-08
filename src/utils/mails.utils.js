@@ -44,6 +44,18 @@ exports.sendEmailVerificationMail = async (userEmail, token, role) => {
   await sendMail(mailOptions);
 };
 
+exports.sendInvitationEmail = async (userEmail, inviterName, userId) => {
+  const mailOptions = {
+    to: `${userEmail}`, // Change to your recipient
+    from: smtpSenderEmail, // sender address
+    subject: "Invitation-Register on SkillApp",
+    html: `<p>You have been invited to join SkillApp by ${inviterName}. To accept the invitation, please click on the following link:</p>
+            <p> <a href=${redirectionBaseUrl}/invite/${userId}>on this link</a> to complete your registration process.</p>
+            <p>If you do not want to create a SkillApp account, please ignore this email!</p>`,
+  };
+  await sendMail(mailOptions);
+};
+
 exports.sendForgotPasswordMail = async (email, resetPasswordToken) => {
   const mailOptions = {
     to: email,
