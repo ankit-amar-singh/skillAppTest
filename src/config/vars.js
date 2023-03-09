@@ -1,5 +1,9 @@
 const path = require("path");
 
+console.log(
+  "path:",
+  path.join(__dirname, `./../../env/${process.env.NODE_ENV || ""}.env`)
+);
 require("dotenv-safe").config({
   path: path.join(__dirname, `./../../env/${process.env.NODE_ENV || ""}.env`),
   example: path.join(__dirname, "./../../env/.env.example"),
