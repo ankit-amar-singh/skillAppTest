@@ -28,7 +28,7 @@ const envVariables = {
   env: process.env.NODE_ENV || "",
   host: process.env.NODE_ENV || "localhost",
   port: process.env.PORT || "3000",
-  mongoUrl: process.env.MONGO_URL || "mongodb://localhost:27017/skillApp",
+  mongoUrl: process.env.MONGO_URL,
   passwordEncryptionKey: process.env.PASSWORD_ENCRYPTION_KEY,
   redirectionBaseUrl: process.env.FRONTEND_BASE_URL,
   smtpServerHost: process.env.SMTP_SERVER_HOST,
