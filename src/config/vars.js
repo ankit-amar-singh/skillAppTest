@@ -1,8 +1,8 @@
 const path = require("path");
 
 require("dotenv-safe").config({
-  path: path.join(__dirname, "./../../.env"),
-  example: path.join(__dirname, "./../../.env.example"),
+  path: path.join(__dirname, `./../../env/${process.env.NODE_ENV || ""}.env`),
+  example: path.join(__dirname, "./../../env/.env.example"),
 });
 
 const userRoles = {
@@ -18,12 +18,11 @@ const dbDocStatus = {
   suspended: 2,
   deleted: 3,
 };
-
 const envVariables = {
-  env: process.env.NODE_ENV,
-  port: process.env.PORT,
-  jwtSecret: process.env.JWT_SECRET,
-  mongoUrl: process.env.MONGO_URL,
+  env: process.env.NODE_ENV || "",
+  host: process.env.NODE_ENV || "localhost",
+  port: process.env.PORT || "3000",
+  mongoUrl: process.env.MONGO_URL || "mongodb://localhost:27017/skillApp",
   passwordEncryptionKey: process.env.PASSWORD_ENCRYPTION_KEY,
   redirectionBaseUrl: process.env.FRONTEND_BASE_URL,
   smtpServerHost: process.env.SMTP_SERVER_HOST,
@@ -34,5 +33,8 @@ const envVariables = {
 };
 
 module.exports = {
-  envVariables, userRoles, dbDocStatus, berlinTimeZone,
+  envVariables,
+  userRoles,
+  dbDocStatus,
+  berlinTimeZone,
 };

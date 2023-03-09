@@ -4,18 +4,24 @@ const crypto = require("crypto");
 // eslint-disable-next-line import/no-extraneous-dependencies
 const momenttz = require("moment-timezone");
 
-const { envVariables, berlinTimeZone, userRoles } = require("../config/vars.js");
+const {
+  envVariables,
+  berlinTimeZone,
+  userRoles,
+} = require("../config/vars.js");
 const { userMessages, tokenMessages } = require("../config/messages");
 const APIError = require("../errors/api-error.js");
 const User = require("../models/user.model.js");
 
 const { decryptGivenText, encryptGivenText } = require("../utils/security");
 const { generateJwtToken } = require("../utils/token-generation.utils");
-const { sendEmailVerificationMail, sendForgotPasswordMail, sendInvitationEmail } = require("../utils/mails.utils");
-
 const {
-  CREATED, OK, UNPROCESSABLE_ENTITY, UNAUTHORIZED,
-} = httpStatus;
+  sendEmailVerificationMail,
+  sendForgotPasswordMail,
+  sendInvitationEmail,
+} = require("../utils/mails.utils");
+
+const { CREATED, OK, UNPROCESSABLE_ENTITY, UNAUTHORIZED } = httpStatus;
 const { jwtSecret } = envVariables;
 
 exports.encryptText = async (req, res, next) => {
@@ -32,7 +38,13 @@ exports.encryptText = async (req, res, next) => {
     return next(error);
   }
 };
-
+exports.test = async (req, res, next) => {
+  try {
+    return res.status(200).json(req.body);
+  } catch (error) {
+    return next(error);
+  }
+};
 exports.register = async (req, res, next) => {
   try {
     const decryptedPassword = decryptGivenText(req.body.password);
@@ -51,7 +63,7 @@ exports.register = async (req, res, next) => {
             $set: {
               emailVerificationToken: existingUserToken,
             },
-          },
+          }
         ).exec();
         existingUser.emailVerificationToken = existingUserToken;
         const existingUserResponse = {
@@ -79,7 +91,7 @@ exports.register = async (req, res, next) => {
         $set: {
           emailVerificationToken: token,
         },
-      },
+      }
     ).exec();
     transformedUser.emailVerificationToken = token;
     const responseObj = {
@@ -109,7 +121,11 @@ exports.teamMemberRegistration = async (req, res, next) => {
       if (existingUser.isEmailVerified === false) {
         // sending mail for verification of team member
         // eslint-disable-next-line no-underscore-dangle
-        await sendInvitationEmail(existingUser.email, req.userProfile._doc.name, existingUser.role);
+        await sendInvitationEmail(
+          existingUser.email,
+          req.userProfile._doc.name,
+          existingUser.role
+        );
         const existingUserResponse = {
           data: existingUser.transform(),
           code: CREATED,
@@ -129,7 +145,11 @@ exports.teamMemberRegistration = async (req, res, next) => {
     const transformedUser = user.transform();
     // sending mail for verification of team member
     // eslint-disable-next-line no-underscore-dangle
-    await sendInvitationEmail(transformedUser.email, req.userProfile._doc.name, transformedUser.id);
+    await sendInvitationEmail(
+      transformedUser.email,
+      req.userProfile._doc.name,
+      transformedUser.id
+    );
     const responseObj = {
       data: transformedUser,
       code: CREATED,
@@ -145,10 +165,12 @@ exports.teamMemberRegistration = async (req, res, next) => {
 exports.registerTeamMemberWithPassword = async (req, res, next) => {
   try {
     const teamMemberId = req.params.teamMemberId.toString();
-    const teamMemberInfo = (await User.getAnyUserById(teamMemberId));
+    const teamMemberInfo = await User.getAnyUserById(teamMemberId);
     const email = req.body.email.toString();
     if (email !== teamMemberInfo.email) {
-      const existingEmailUser = await User.findOne({ email }).select('email _id').exec();
+      const existingEmailUser = await User.findOne({ email })
+        .select("email _id")
+        .exec();
       if (existingEmailUser) {
         throw new APIError({
           status: httpStatus.UNPROCESSABLE_ENTITY,
@@ -191,9 +213,7 @@ exports.teamMemberListing = async (req, res, next) => {
     let usersData = [];
     usersData = await User.find(filter)
       .sort({ createdAt: -1 })
-      .select(
-        "name email surname position",
-      )
+      .select("name email surname position")
       .skip(perPage * page - perPage)
       .limit(perPage)
       .exec();
@@ -233,7 +253,7 @@ exports.signin = async (req, res, next) => {
         userId: transformedUser.id,
         iat: Date.now(),
       },
-      jwtSecret,
+      jwtSecret
     );
     const currentMoment = momenttz.tz(berlinTimeZone);
     await User.updateOne(
@@ -243,7 +263,7 @@ exports.signin = async (req, res, next) => {
           lastLoginAt: currentMoment.format("MMM Do, YYYY"),
           activeToken: token,
         },
-      },
+      }
     );
     transformedUser.activeToken = token;
     return res.status(OK).json({ user: transformedUser });
@@ -277,7 +297,7 @@ exports.logOutUser = async (req, res, next) => {
         $set: {
           activeToken: null,
         },
-      },
+      }
     ).exec();
     const responseObj = {
       data: {},
@@ -315,7 +335,7 @@ exports.verifyEmail = async (req, res, next) => {
         $set: {
           isEmailVerified: true,
         },
-      },
+      }
     ).exec();
     const responseObj = {
       data: null,

@@ -44,8 +44,8 @@ const userSchema = new Schema(
     password: {
       type: String,
       required: false,
-      minlength: 6,
-      maxlength: 128,
+      // minlength: 6,
+      // maxlength: 128,
     },
     role: {
       type: Number,
@@ -98,7 +98,7 @@ const userSchema = new Schema(
   },
   {
     timestamps: true,
-  },
+  }
 );
 
 userSchema.pre("save", async function save(next) {
