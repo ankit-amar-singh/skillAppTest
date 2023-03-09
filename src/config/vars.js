@@ -18,7 +18,12 @@ const dbDocStatus = {
   suspended: 2,
   deleted: 3,
 };
-console.log("Process.Env.MONGO_URL", process.env.MONGO_URL);
+console.log(
+  "Process.Env.MONGO_URL",
+  process.env.MONGO_URL,
+  "ENV:",
+  process.env.NODE_ENV
+);
 const envVariables = {
   env: process.env.NODE_ENV || "",
   host: process.env.NODE_ENV || "localhost",
