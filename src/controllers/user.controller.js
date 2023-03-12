@@ -28,10 +28,11 @@ exports.encryptText = async (req, res, next) => {
   try {
     const password = req.body.password ? req.body.password : undefined;
     const cipherText = encryptGivenText(password);
-    const bytes = decryptGivenText(cipherText);
+    const bytes = decryptGivenText(password);
     const responseObj = {
       encryptedText: cipherText,
       decryptedText: bytes,
+      plainText: decryptGivenText(cipherText),
     };
     return res.status(200).json(responseObj);
   } catch (error) {
@@ -40,7 +41,7 @@ exports.encryptText = async (req, res, next) => {
 };
 exports.test = async (req, res, next) => {
   try {
-    return res.status(200).json(req.body);
+    return res.status(200).json({ reqBody: req.body, envVars: envVariables });
   } catch (error) {
     return next(error);
   }
