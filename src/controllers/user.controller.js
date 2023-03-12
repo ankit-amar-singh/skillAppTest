@@ -19,6 +19,7 @@ const {
   sendEmailVerificationMail,
   sendForgotPasswordMail,
   sendInvitationEmail,
+  sendEmailVerificationMailTest,
 } = require("../utils/mails.utils");
 
 const { CREATED, OK, UNPROCESSABLE_ENTITY, UNAUTHORIZED } = httpStatus;
@@ -41,7 +42,13 @@ exports.encryptText = async (req, res, next) => {
 };
 exports.test = async (req, res, next) => {
   try {
-    return res.status(200).json({ reqBody: req.body, envVars: envVariables });
+    const token = generateJwtToken("123456");
+    return res.status(200).json({
+      reqBody: req.body,
+      envVars: envVariables,
+      token,
+      Template: sendEmailVerificationMailTest("test@email.com", token, 0),
+    });
   } catch (error) {
     return next(error);
   }
