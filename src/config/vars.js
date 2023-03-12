@@ -40,6 +40,7 @@ const envVariables = {
   smtpUserName: process.env.SMTP_USER,
   smtpPassword: process.env.SMTP_PASS,
   smtpSenderEmail: process.env.SMTP_SENDER_ID,
+  jwtSecret: process.env.JWT_SECRET,
 };
 
 module.exports = {
