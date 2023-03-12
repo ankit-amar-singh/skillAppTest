@@ -19,7 +19,6 @@ const {
   sendEmailVerificationMail,
   sendForgotPasswordMail,
   sendInvitationEmail,
-  sendEmailVerificationMailTest,
 } = require("../utils/mails.utils");
 
 const { CREATED, OK, UNPROCESSABLE_ENTITY, UNAUTHORIZED } = httpStatus;
@@ -43,13 +42,7 @@ exports.encryptText = async (req, res, next) => {
 
 exports.test = async (req, res, next) => {
   try {
-    const token = generateJwtToken("123456");
-    return res.status(200).json({
-      reqBody: req.body,
-      envVars: envVariables,
-      token,
-      Template: sendEmailVerificationMailTest("test@email.com", token, 0),
-    });
+    return res.status(200).json(req.body);
   } catch (error) {
     return next(error);
   }
@@ -65,25 +58,6 @@ exports.register = async (req, res, next) => {
       email,
     }).exec();
     if (existingUser) {
-      const existingTransformedUser = existingUser.transform();
-      if (existingUser.isEmailVerified === false) {
-        const existingUserToken = generateJwtToken(existingTransformedUser.id);
-        await User.updateOne(
-          { _id: existingTransformedUser.id },
-          {
-            $set: {
-              emailVerificationToken: existingUserToken,
-            },
-          }
-        ).exec();
-        existingUser.emailVerificationToken = existingUserToken;
-        const existingUserResponse = {
-          data: existingUser.transform(),
-          code: CREATED,
-          message: userMessages.emailVerificationLink,
-        };
-        return res.status(CREATED).json(existingUserResponse);
-      }
       throw new APIError({
         status: httpStatus.UNPROCESSABLE_ENTITY,
         message: userMessages.emailAlreadyExist,
@@ -152,6 +126,7 @@ exports.teamMemberRegistration = async (req, res, next) => {
     }
     // if team member does not exist, save body as a new entry
     const userData = req.body;
+    userData.teamLeaderId = req.userId;
     const user = await new User(userData).save();
     const transformedUser = user.transform();
     // sending mail for verification of team member
@@ -407,6 +382,7 @@ exports.forgotPassword = async (req, res, next) => {
     // Generate password reset token and expiration date
     user.resetPasswordToken = crypto.randomBytes(16).toString("hex");
     user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+    console.log(user);
     await user.save();
     await sendForgotPasswordMail(user.email, user.resetPasswordToken);
     return res.status(200).json({ message: "Password reset email sent." });
@@ -427,7 +403,6 @@ exports.resetPassword = async (req, res, next) => {
     const user = await User.findOne({
       resetPasswordToken,
     });
-
     if (!user) {
       throw new APIError({
         status: httpStatus.UNPROCESSABLE_ENTITY,
