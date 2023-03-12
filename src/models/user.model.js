@@ -72,6 +72,11 @@ const userSchema = new Schema(
       type: String,
       required: false,
     },
+    teamLeaderId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
     activeToken: {
       type: String,
     },

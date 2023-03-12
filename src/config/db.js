@@ -4,7 +4,6 @@ const { envVariables } = require("./vars.js");
 const { mongoUrl } = envVariables;
 
 exports.connectDB = async () => {
-  console.log("mongoUrl:", mongoUrl);
   try {
     const con = await mongoose.connect(mongoUrl, {
       useNewUrlParser: true,

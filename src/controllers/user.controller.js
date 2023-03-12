@@ -25,21 +25,22 @@ const {
 const { CREATED, OK, UNPROCESSABLE_ENTITY, UNAUTHORIZED } = httpStatus;
 const { jwtSecret } = envVariables;
 
+// function for internal use of converting password into encrypted form
 exports.encryptText = async (req, res, next) => {
   try {
     const password = req.body.password ? req.body.password : undefined;
     const cipherText = encryptGivenText(password);
-    const bytes = decryptGivenText(password);
+    const bytes = decryptGivenText(cipherText);
     const responseObj = {
       encryptedText: cipherText,
       decryptedText: bytes,
-      plainText: decryptGivenText(cipherText),
     };
     return res.status(200).json(responseObj);
   } catch (error) {
     return next(error);
   }
 };
+
 exports.test = async (req, res, next) => {
   try {
     const token = generateJwtToken("123456");
@@ -53,6 +54,8 @@ exports.test = async (req, res, next) => {
     return next(error);
   }
 };
+
+// function for registration of team leaders
 exports.register = async (req, res, next) => {
   try {
     const decryptedPassword = decryptGivenText(req.body.password);
@@ -128,9 +131,9 @@ exports.teamMemberRegistration = async (req, res, next) => {
       // if team member already exist but email is not verified
       if (existingUser.isEmailVerified === false) {
         // sending mail for verification of team member
-        // eslint-disable-next-line no-underscore-dangle
         await sendInvitationEmail(
           existingUser.email,
+          // eslint-disable-next-line no-underscore-dangle
           req.userProfile._doc.name,
           existingUser.role
         );
@@ -152,9 +155,9 @@ exports.teamMemberRegistration = async (req, res, next) => {
     const user = await new User(userData).save();
     const transformedUser = user.transform();
     // sending mail for verification of team member
-    // eslint-disable-next-line no-underscore-dangle
     await sendInvitationEmail(
       transformedUser.email,
+      // eslint-disable-next-line no-underscore-dangle
       req.userProfile._doc.name,
       transformedUser.id
     );
@@ -211,6 +214,7 @@ exports.teamMemberListing = async (req, res, next) => {
     }
     const filter = {
       role: userRoles.teamMember,
+      teamLeaderId: req.userId.toString(),
     };
     if (search && search !== undefined) {
       const regex = new RegExp(search, "i");
@@ -241,6 +245,29 @@ exports.teamMemberListing = async (req, res, next) => {
   }
 };
 
+// function for details of any user
+exports.userDetails = async (req, res, next) => {
+  try {
+    const userId = req.params.userId.toString();
+    const usersResponse = await User.findById(userId)
+      .select(
+        "_id name email surname position teamLeaderId role status createdAt"
+      )
+      .populate({ path: "teamLeaderId", select: "_id id name" })
+      .exec();
+
+    const responseObj = {
+      data: usersResponse,
+      code: OK,
+      message: "Team members details response",
+    };
+    return res.status(OK).json(responseObj);
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// function for sign in of any user
 exports.signin = async (req, res, next) => {
   try {
     const decryptedPassword = decryptGivenText(req.body.password);
@@ -273,6 +300,12 @@ exports.signin = async (req, res, next) => {
         },
       }
     );
+    if (user.role === userRoles.teamLeader) {
+      transformedUser.teamLeaderCount = await User.countDocuments({
+        role: userRoles.teamMember,
+        teamLeaderId: transformedUser.id,
+      }).exec();
+    }
     transformedUser.activeToken = token;
     return res.status(OK).json({ user: transformedUser });
   } catch (error) {
@@ -280,6 +313,7 @@ exports.signin = async (req, res, next) => {
   }
 };
 
+// function for logging out user from skillapp
 exports.logOutUser = async (req, res, next) => {
   try {
     const userId = req.userId ? req.userId : undefined;
@@ -318,6 +352,7 @@ exports.logOutUser = async (req, res, next) => {
   }
 };
 
+// function for verification of email
 exports.verifyEmail = async (req, res, next) => {
   try {
     const userId = req.userId ? req.userId : undefined;

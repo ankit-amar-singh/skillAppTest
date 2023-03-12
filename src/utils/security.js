@@ -4,17 +4,10 @@ const { envVariables } = require("../config/vars");
 // eslint-disable-next-line arrow-body-style
 exports.encryptGivenText = (password) => {
   console.log(password, envVariables.passwordEncryptionKey);
-  return CryptoJS.AES.encrypt(
-    password,
-    envVariables.passwordEncryptionKey
-  ).toString();
+  return CryptoJS.AES.encrypt(password, envVariables.passwordEncryptionKey).toString();
 };
 
 exports.decryptGivenText = (password) => {
-  console.log(password, envVariables.passwordEncryptionKey);
-  const bytes = CryptoJS.AES.decrypt(
-    password,
-    envVariables.passwordEncryptionKey
-  );
+  const bytes = CryptoJS.AES.decrypt(password, envVariables.passwordEncryptionKey);
   return bytes.toString(CryptoJS.enc.Utf8);
 };

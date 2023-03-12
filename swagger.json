@@ -154,6 +154,32 @@
           }
         } 
       },
+      "/user/{userId}/details": {
+        "get": {
+          "tags": [
+            "User"
+          ],
+          "description": "GET any user details woth this api",
+          "parameters": [
+            {
+              "name": "userId",
+              "in": "path",
+              "description": "User details response"
+            }
+          ],
+          "produces": [
+            "application/json"
+          ],
+          "responses": {
+            "200": {
+              "description": "User details fetched",
+              "schema": {
+                "$ref": "#/definitions/UserDetailsResponse"
+              }
+            }
+          }
+        } 
+      },
       "/user/signin": {
         "post": {
           "tags": [
@@ -456,6 +482,59 @@
               "role": {
                 "type": "integer",
                 "format": "int32"
+              }
+            }
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "UserDetailsResponse": {
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "_id": {
+                "type": "string"
+              },
+              "email": {
+                "type": "string"
+              },
+              "role": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "name": {
+                "type": "string"
+              },
+              "surname": {
+                "type": "string"
+              },
+              "position": {
+                "type": "string"
+              },
+              "status": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "createdAt": {
+                "type": "string"
+              },
+              "teamLeaderId": {
+                "type": "object",
+                "properties": {
+                  "_id": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  }
+                }
               }
             }
           },

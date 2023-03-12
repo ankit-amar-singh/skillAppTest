@@ -1,9 +1,4 @@
 const path = require("path");
-
-console.log(
-  "path:",
-  path.join(__dirname, `./../../env/${process.env.NODE_ENV || ""}.env`)
-);
 require("dotenv-safe").config({
   path: path.join(__dirname, `./../../env/${process.env.NODE_ENV || ""}.env`),
   example: path.join(__dirname, "./../../env/.env.example"),
@@ -22,12 +17,6 @@ const dbDocStatus = {
   suspended: 2,
   deleted: 3,
 };
-console.log(
-  "Process.Env.MONGO_URL",
-  process.env.MONGO_URL,
-  "ENV:",
-  process.env.NODE_ENV
-);
 const envVariables = {
   env: process.env.NODE_ENV || "",
   host: process.env.NODE_ENV || "localhost",

@@ -15,6 +15,7 @@ const {
   teamMemberListing,
   registerTeamMemberWithPassword,
   logOutUser,
+  userDetails,
 } = require("../../controllers/user.controller.js");
 const userValidation = require("../../validations/user.validation.js");
 const tokenValidation = require("../../validations/token.validation");
@@ -71,6 +72,8 @@ router
   .post(validate(forgotPasswordValidation), forgotPassword);
 
 router.route("/reset").post(validate(resetPasswordValidation), resetPassword);
+
+router.route("/:userId/details").get(userDetails);
 
 router
   .route("/logout")
