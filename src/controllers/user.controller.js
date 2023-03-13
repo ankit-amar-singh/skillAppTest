@@ -42,7 +42,7 @@ exports.encryptText = async (req, res, next) => {
 
 exports.test = async (req, res, next) => {
   try {
-    return res.status(200).json(req.body);
+    return res.status(200).json({ body: req.body, env: envVariables });
   } catch (error) {
     return next(error);
   }
