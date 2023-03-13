@@ -1,6 +1,7 @@
 const httpStatus = require("http-status");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
+const nodemailer = require("nodemailer");
 // eslint-disable-next-line import/no-extraneous-dependencies
 const momenttz = require("moment-timezone");
 
@@ -42,7 +43,33 @@ exports.encryptText = async (req, res, next) => {
 
 exports.test = async (req, res, next) => {
   try {
-    return res.status(200).json({ body: req.body, env: envVariables });
+    const mailTransporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: "skill.app22@gmail.com",
+        pass: "Data@12345",
+      },
+    });
+
+    const mailDetails = {
+      from: "skill.app22@gmail.com",
+      to: "skill.app22@gmail.com",
+      subject: "Test mail",
+      text: "Node.js testing mail for GeeksforGeeks",
+    };
+
+    let emailError = "No";
+    mailTransporter.sendMail(mailDetails, (err, data) => {
+      if (err) {
+        console.log("Error Occurs");
+        emailError = "Yes";
+      } else {
+        console.log("Email sent successfully");
+      }
+    });
+    return res
+      .status(200)
+      .json({ body: req.body, env: envVariables, emailError });
   } catch (error) {
     return next(error);
   }
